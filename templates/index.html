@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emotion-Aware EduBot</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-light: #e0e7ff;
+            --secondary: #3f37c9;
+            --accent: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --light-gray: #e9ecef;
+            --success: #4cc9f0;
+            --warning: #f8961e;
+            --danger: #ef233c;
+            --border-radius: 12px;
+            --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--dark);
+            background-color: #f5f7fb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .chat-container {
+            width: 100%;
+            max-width: 800px;
+            height: 80vh;
+            background-color: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-header {
+            background-color: var(--primary);
+            color: white;
+            padding: 18px 24px;
+            font-size: 1.25rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .chat-header::before {
+            content: "";
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            background-color: #4ade80;
+            border-radius: 50%;
+            margin-right: 12px;
+            box-shadow: 0 0 0 2px rgba(74, 222, 128, 0.3);
+        }
+        
+        .session-info {
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 24px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .message {
+            max-width: 80%;
+            padding: 14px 18px;
+            border-radius: var(--border-radius);
+            line-height: 1.5;
+            font-size: 0.95rem;
+            position: relative;
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .user-message {
+            align-self: flex-end;
+            background-color: var(--primary);
+            color: white;
+            border-bottom-right-radius: 4px;
+            box-shadow: var(--shadow);
+        }
+        
+        .bot-message {
+            align-self: flex-start;
+            background-color: var(--light-gray);
+            color: var(--dark);
+            border-bottom-left-radius: 4px;
+            box-shadow: var(--shadow);
+        }
+        
+        .chat-input-container {
+            padding: 16px;
+            background-color: white;
+            border-top: 1px solid var(--light-gray);
+            position: relative;
+        }
+        
+        .chat-input-wrapper {
+            display: flex;
+            background-color: var(--light-gray);
+            border-radius: var(--border-radius);
+            padding: 4px;
+            box-shadow: var(--shadow);
+        }
+        
+        #message-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: none;
+            background: transparent;
+            outline: none;
+            font-family: inherit;
+            font-size: 0.95rem;
+            color: var(--dark);
+        }
+        
+        #send-button {
+            background-color: var(--primary);
+            color: white;
+            border: none;
+            border-radius: calc(var(--border-radius) - 4px);
+            padding: 0 20px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #send-button:hover {
+            background-color: var(--secondary);
+        }
+        
+        #send-button:disabled {
+            background-color: var(--gray);
+            cursor: not-allowed;
+        }
+        
+        .typing-indicator {
+            display: inline-flex;
+            align-items: center;
+            padding: 12px 16px;
+            background-color: var(--light-gray);
+            border-radius: var(--border-radius);
+            align-self: flex-start;
+            margin-bottom: 8px;
+            box-shadow: var(--shadow);
+            color: var(--gray);
+            font-size: 0.85rem;
+        }
+        
+        .typing-dots {
+            display: inline-flex;
+            margin-right: 8px;
+        }
+        
+        .typing-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--gray);
+            margin: 0 2px;
+            animation: typing-animation 1.4s infinite ease-in-out;
+        }
+        
+        .typing-dots span:nth-child(1) {
+            animation-delay: 0s;
+        }
+        
+        .typing-dots span:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+        
+        .typing-dots span:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+        
+        @keyframes typing-animation {
+            0%, 60%, 100% { transform: translateY(0); opacity: 0.6; }
+            30% { transform: translateY(-3px); opacity: 1; }
+        }
+        
+        .inference-time {
+            position: absolute;
+            right: 48px;
+            bottom: 12px;
+            font-size: 0.7rem;
+            color: var(--gray);
+            background-color: rgba(255, 255, 255, 0.8);
+            padding: 2px 6px;
+            border-radius: 10px;
+        }
+        
+        .message-time {
+            font-size: 0.7rem;
+            color: var(--gray);
+            margin-top: 4px;
+            text-align: right;
+        }
+        
+        .user-message .message-time {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .status-indicator {
+            padding: 8px 16px;
+            font-size: 0.8rem;
+            text-align: center;
+            color: var(--gray);
+            background-color: var(--light-gray);
+            border-radius: 4px;
+            margin: 0 24px 16px;
+            display: none;
+        }
+        
+        .status-indicator.stress-detected {
+            color: var(--danger);
+            background-color: rgba(239, 35, 60, 0.1);
+        }
+        
+        /* Custom scrollbar */
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        .chat-messages::-webkit-scrollbar-track {
+            background: var(--light-gray);
+        }
+        
+        .chat-messages::-webkit-scrollbar-thumb {
+            background-color: var(--gray);
+            border-radius: 3px;
+        }
+        
+        .new-session-btn {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 0.8rem;
+            cursor: pointer;
+            opacity: 0.8;
+            transition: opacity 0.2s;
+        }
+        
+        .new-session-btn:hover {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <span>Emotion-Aware EduBot</span>
+            <span class="session-info" id="session-info">Session: New</span>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <!-- Messages will appear here -->
+        </div>
+        <div class="status-indicator" id="status-indicator"></div>
+        <div class="chat-input-container">
+            <div class="chat-input-wrapper">
+                <input type="text" id="message-input" placeholder="Type your message..." autocomplete="off">
+                <button id="send-button" disabled>
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M22 2L11 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M22 2L15 22L11 13L2 9L22 2Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM elements
+        const chatMessages = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message-input');
+        const sendButton = document.getElementById('send-button');
+        const statusIndicator = document.getElementById('status-indicator');
+        const sessionInfo = document.getElementById('session-info');
+        
+        // Behavior tracking variables
+        let lastKeyTime = 0;
+        let keyIntervals = [];
+        let typingStartTime = 0;
+        let typingSpeedSamples = [];
+        let backspaceCount = 0;
+        let consecutiveBackspaces = 0;
+        let lastMessageTime = 0;
+        let currentSessionId = null;
+        
+        // Initialize session
+        initializeSession();
+        
+        // Initialize event listeners
+        messageInput.addEventListener('keydown', trackKeyBehavior);
+        messageInput.addEventListener('keyup', trackKeyBehavior);
+        messageInput.addEventListener('input', toggleSendButton);
+        sendButton.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey && messageInput.value.trim()) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+        
+        function initializeSession() {
+            fetch('/start_session', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                currentSessionId = data.session_id;
+                sessionInfo.textContent = `Session: ${currentSessionId.substring(0, 8)}...`;
+                addBotMessage("Hello! I'm EduBot, your emotion-aware learning assistant. I'm here to help with your studies while being attentive to how you're feeling. How can I assist you today?");
+            })
+            .catch(error => {
+                console.error('Error starting session:', error);
+                // Fallback to local session ID if API fails
+                currentSessionId = `local-${Date.now()}`;
+                sessionInfo.textContent = `Session: Local`;
+                addBotMessage("Hello! I'm EduBot (offline mode). I'm here to help with your studies.");
+            });
+        }
+        
+        function toggleSendButton() {
+            sendButton.disabled = messageInput.value.trim() === '';
+        }
+        
+        function trackKeyBehavior(e) {
+            const now = Date.now();
+            
+            // Track response interval (time since last message)
+            if (!lastMessageTime) {
+                lastMessageTime = now;
+            }
+            
+            // Track typing speed and patterns
+            if (e.type === 'keydown') {
+                if (!typingStartTime) {
+                    typingStartTime = now;
+                }
+                
+                // Track backspace behavior
+                if (e.key === 'Backspace') {
+                    backspaceCount++;
+                    consecutiveBackspaces++;
+                } else if (e.key.length === 1) { // Only count character keys
+                    consecutiveBackspaces = 0;
+                }
+                
+                // Track key intervals
+                if (lastKeyTime) {
+                    const interval = now - lastKeyTime;
+                    keyIntervals.push(interval);
+                }
+                lastKeyTime = now;
+            }
+        }
+        
+        function calculateBehaviorData() {
+            const now = Date.now();
+            const behaviorData = {};
+            
+            // Calculate typing speed metrics
+            if (typingStartTime) {
+                const typingDuration = (now - typingStartTime) / 60000; // in minutes
+                const textLength = messageInput.value.length;
+                const currentSpeed = typingDuration > 0 ? textLength / typingDuration : 0;
+                
+                typingSpeedSamples.push(currentSpeed);
+                
+                if (typingSpeedSamples.length > 1) {
+                    behaviorData.typingSpeed = {
+                        average: typingSpeedSamples.reduce((a, b) => a + b, 0) / typingSpeedSamples.length,
+                        min: Math.min(...typingSpeedSamples),
+                        max: Math.max(...typingSpeedSamples),
+                        current: currentSpeed
+                    };
+                }
+            }
+            
+            // Calculate key interval statistics
+            if (keyIntervals.length > 0) {
+                const avgInterval = keyIntervals.reduce((a, b) => a + b, 0) / keyIntervals.length;
+                const squaredDiffs = keyIntervals.map(interval => Math.pow(interval - avgInterval, 2));
+                const variance = squaredDiffs.reduce((a, b) => a + b, 0) / keyIntervals.length;
+                const stdDev = Math.sqrt(variance);
+                
+                behaviorData.keyIntervalStd = stdDev;
+            }
+            
+            // Add backspace data
+            behaviorData.backspaceCount = backspaceCount;
+            behaviorData.consecutiveBackspaces = consecutiveBackspaces;
+            
+            // Add response interval (time since last message)
+            behaviorData.responseInterval = now - lastMessageTime;
+            
+            return behaviorData;
+        }
+        
+        function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message || !currentSessionId) return;
+            
+            // Add user message to chat
+            addUserMessage(message);
+            
+            // Calculate behavior data
+            const behaviorData = calculateBehaviorData();
+            
+            // Show typing indicator
+            showTypingIndicator();
+            
+            // Reset behavior tracking for new message
+            resetBehaviorTracking();
+            
+            // Disable input while waiting for response
+            messageInput.disabled = true;
+            sendButton.disabled = true;
+            
+            // Record start time for inference timing
+            const startTime = Date.now();
+            
+            // Send message to server
+            fetch('/chat', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    message: message,
+                    session_id: currentSessionId,
+                    behavior: behaviorData
+                })
+            })
+            .then(response => {
+                // Handle streaming response
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let botMessage = '';
+                let inferenceTime = 0;
+                
+                function readStream() {
+                    return reader.read().then(({done, value}) => {
+                        if (done) {
+                            hideTypingIndicator();
+                            lastMessageTime = Date.now();
+                            messageInput.disabled = false;
+                            messageInput.focus();
+                            return;
+                        }
+                        
+                        const chunk = decoder.decode(value);
+                        const lines = chunk.split('\n').filter(line => line.trim() !== '');
+                        
+                        for (const line of lines) {
+                            if (line.startsWith('data:')) {
+                                try {
+                                    const data = JSON.parse(line.substring(5).trim());
+                                    if (data.content) {
+                                        botMessage += data.content;
+                                        if (data.inference_time) {
+                                            inferenceTime = data.inference_time;
+                                        }
+                                        updateBotMessage(botMessage, inferenceTime);
+                                    }
+                                } catch (e) {
+                                    console.error('Error parsing JSON:', e);
+                                }
+                            }
+                        }
+                        
+                        return readStream();
+                    });
+                }
+                
+                return readStream();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                hideTypingIndicator();
+                addBotMessage("Sorry, I'm having trouble connecting. Please try again later.");
+                messageInput.disabled = false;
+                sendButton.disabled = messageInput.value.trim() === '';
+            });
+            
+            // Clear input
+            messageInput.value = '';
+        }
+        
+        function resetBehaviorTracking() {
+            lastKeyTime = 0;
+            keyIntervals = [];
+            typingStartTime = 0;
+            typingSpeedSamples = [];
+            backspaceCount = 0;
+            consecutiveBackspaces = 0;
+        }
+        
+        function addUserMessage(message) {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message user-message';
+            messageElement.innerHTML = marked.parse(message);
+            
+            const timeElement = document.createElement('div');
+            timeElement.className = 'message-time';
+            timeElement.textContent = formatTime(new Date());
+            
+            messageElement.appendChild(timeElement);
+            chatMessages.appendChild(messageElement);
+            scrollToBottom();
+        }
+        
+        function addBotMessage(message) {
+            const messageElement = document.createElement('div');
+            messageElement.className = 'message bot-message';
+            messageElement.innerHTML = marked.parse(message);
+            
+            const timeElement = document.createElement('div');
+            timeElement.className = 'message-time';
+            timeElement.textContent = formatTime(new Date());
+            
+            messageElement.appendChild(timeElement);
+            chatMessages.appendChild(messageElement);
+            scrollToBottom();
+        }
+        
+        function updateBotMessage(message, inferenceTime = 0) {
+            let botMessageElement = document.querySelector('.bot-message:last-child');
+            if (!botMessageElement) {
+                botMessageElement = document.createElement('div');
+                botMessageElement.className = 'message bot-message';
+                chatMessages.appendChild(botMessageElement);
+            }
+            
+            // Check if we're replacing typing indicator
+            const typingIndicator = document.querySelector('.typing-indicator');
+            if (typingIndicator && typingIndicator.parentNode === chatMessages) {
+                chatMessages.removeChild(typingIndicator);
+            }
+            
+            botMessageElement.innerHTML = marked.parse(message);
+            
+            // Add inference time if available
+            if (inferenceTime > 0) {
+                let timeElement = botMessageElement.querySelector('.inference-time');
+                if (!timeElement) {
+                    timeElement = document.createElement('div');
+                    timeElement.className = 'inference-time';
+                    botMessageElement.appendChild(timeElement);
+                }
+                timeElement.textContent = `Generated in ${inferenceTime}ms`;
+            }
+            
+            // Add message time if not already present
+            if (!botMessageElement.querySelector('.message-time')) {
+                const timeElement = document.createElement('div');
+                timeElement.className = 'message-time';
+                timeElement.textContent = formatTime(new Date());
+                botMessageElement.appendChild(timeElement);
+            }
+            
+            scrollToBottom();
+        }
+        
+        function showTypingIndicator() {
+            const typingElement = document.createElement('div');
+            typingElement.className = 'typing-indicator';
+            typingElement.id = 'typing-indicator';
+            typingElement.innerHTML = `
+                <div class="typing-dots">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <span>EduBot is thinking...</span>
+            `;
+            chatMessages.appendChild(typingElement);
+            scrollToBottom();
+        }
+        
+        function hideTypingIndicator() {
+            const typingElement = document.getElementById('typing-indicator');
+            if (typingElement) {
+                typingElement.remove();
+            }
+        }
+        
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+        
+        function showStatus(message, isStress = false) {
+            statusIndicator.textContent = message;
+            statusIndicator.style.display = 'block';
+            
+            if (isStress) {
+                statusIndicator.classList.add('stress-detected');
+            } else {
+                statusIndicator.classList.remove('stress-detected');
+            }
+            
+            setTimeout(() => {
+                statusIndicator.style.display = 'none';
+            }, 3000);
+        }
+        
+        function formatTime(date) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+    </script>
+</body>
+</html>
