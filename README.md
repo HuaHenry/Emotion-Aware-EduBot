@@ -4,9 +4,20 @@
 
 **Emotion-Aware EduBot is a proof-of-concept web-based chatbot designed to function as an empathetic AI tutor**. Its primary goal is to assist students with their academic questions while also being attentive to their emotional state. The application intelligently detects signs of negative emotions, such as frustration or stress, and adjusts its conversational approach to provide support and empathy before returning to the educational content.
 
-This project showcases a more human-centered approach to AI interaction in education. The core technology combines a robust Python backend using the `Flask` framework with a dynamic JS frontend. It leverages the `OpenAI API` for natural language understanding and generation. A key feature is its `dual-method emotion detection`, which analyzes both explicit keywords in the user's text and implicit behavioral patterns captured on the client-side, such as typing speed, hesitation, and correction frequency. Responses are streamed in real-time to the user via `Server-Sent Events (SSE)` for a fluid and responsive chat experience.
-
 ![alt text](.img/image.png)
+
+The core of this application is powered by **OpenAI's `gpt-4o-mini` model**, a sophisticated member of the GPT (Generative Pre-trained Transformer) family. This model provides the foundation for natural language understanding and generation, allowing EduBot to engage in fluid, context-aware conversations. User intent is not identified by traditional, rigid intent recognition algorithms; instead, the large language model interprets the user's goals and meaning from the conversational flow, guided by a detailed system prompt that defines its persona as an empathetic tutor.
+
+A key feature is the multi-faceted emotion and stress detection system, which combines two distinct techniques:
+
+1. **Lexical Sentiment Analysis**: A direct, rule-based approach that scans user messages for keywords defined in an external `negative_words.txt` file. This provides a quick and explicit signal of the user's expressed feelings.
+
+2. **Behavioral Pattern Analysis**: A more subtle, data-driven method implemented on the client-side. JavaScript tracks user interaction metrics such as significant fluctuations in typing speed, high standard deviation in key-press intervals, frequent use of the backspace key, and long pauses before responding. These behavioral markers serve as implicit indicators of cognitive load or emotional distress, allowing the bot to perceive a user's state even when it is not explicitly stated.
+
+**Conversational coherence** is maintained through a stateful session management system. The application stores the history of each conversation in a `deque` structure on the server. For each new message, a sliding window of the most recent turns is sent back to the OpenAI API. This technique provides the model with the necessary context to understand follow-up questions, recall previous points, and ensure the dialogue remains logical and connected over multiple interactions.
+
+The bot operates on the vast internal knowledge of the `gpt-4o-mini` model combined with the immediate conversation history. The `SYSTEM_PROMPT` acts as a foundational guide, instructing the model on its personality, tone, and the specific empathetic protocols to follow when emotional or behavioral stress indicators are detected, effectively shaping its function without a separate knowledge store.
+
 
 ## Environment Setup
 
