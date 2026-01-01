@@ -5,6 +5,8 @@
 ![OpenAI](https://img.shields.io/badge/Model-GPT--4o--mini-412991?logo=openai&logoColor=white)
 ![Environment](https://img.shields.io/badge/Environment-Conda-44A833?logo=anaconda&logoColor=white)
 
+[EN Version](./README_zh.md) | [负面词汇列表](./negative_words.txt)
+
 ## 项目简介
 
 **Emotion-Aware EduBot 是一款概念验证型的网页端聊天机器人，旨在担任共情式 AI 导师的角色**。它的核心目标是在协助学生解决学术问题的同时，敏锐地捕捉他们的情绪状态。该应用能够智能地识别诸如挫败或压力等负面情绪信号，并据此调整沟通方式，在回归教学内容之前，优先提供心理支持与情感共情。

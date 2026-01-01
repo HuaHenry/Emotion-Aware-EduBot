@@ -1,5 +1,12 @@
 # Emotion-Aware EduBot
 
+![Python](https://img.shields.io/badge/Python-3.7+-3776AB?logo=python&logoColor=white)
+![Flask](https://img.shields.io/badge/Flask-2.0+-000000?logo=flask&logoColor=white)
+![OpenAI](https://img.shields.io/badge/Model-GPT--4o--mini-412991?logo=openai&logoColor=white)
+![Environment](https://img.shields.io/badge/Environment-Conda-44A833?logo=anaconda&logoColor=white)
+
+[中文版](./README_zh.md) | [Negative_words_list](./negative_words.txt)
+
 ## Introduction
 
 **Emotion-Aware EduBot is a proof-of-concept web-based chatbot designed to function as an empathetic AI tutor**. Its primary goal is to assist students with their academic questions while also being attentive to their emotional state. The application intelligently detects signs of negative emotions, such as frustration or stress, and adjusts its conversational approach to provide support and empathy before returning to the educational content.
