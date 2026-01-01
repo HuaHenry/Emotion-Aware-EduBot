@@ -5,7 +5,7 @@
 ![OpenAI](https://img.shields.io/badge/Model-GPT--4o--mini-412991?logo=openai&logoColor=white)
 ![Environment](https://img.shields.io/badge/Environment-Conda-44A833?logo=anaconda&logoColor=white)
 
-[EN Version](./README_zh.md) | [负面词汇列表](./negative_words.txt)
+[EN Version](./README.md) | [负面词汇列表](./negative_words.txt)
 
 ## 项目简介
 
